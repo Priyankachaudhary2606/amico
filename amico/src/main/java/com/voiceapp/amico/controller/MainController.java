@@ -3,6 +3,7 @@ package com.voiceapp.amico.controller;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,7 +15,10 @@ import com.google.actions.api.App;
 @RestController
 public class MainController {
 	
-	private final App intentController = new IntentController();
+//	private final App intentController = new IntentController();
+	
+	@Autowired
+	private IntentController intentController;
 	
 	@RequestMapping(value = "/", method = RequestMethod.POST, produces = {"application/json"})
 	public String webhookFunction(@RequestBody String body, @RequestHeader Map<String, String> headers)  {

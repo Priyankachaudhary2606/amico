@@ -1,5 +1,84 @@
 package com.voiceapp.amico.dao;
 
-public class StoreInformationDao {
+import java.util.HashMap;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
+import org.springframework.stereotype.Repository;
+import com.voiceapp.amico.common.AbstractTransactionalDao;
+import com.voiceapp.amico.config.StoreInformationConfig;
+import com.voiceapp.amico.dto.StoreInformationDto;
+
+/**
+ * 
+ * @author priyankachaudhary
+ *This DAO class will be used to save any information in database
+ *this will be invoked by StoreInformationService
+ *@LastUpdatedOn - 15/04/2019
+ *@reviewed_by -
+ */
+@Repository
+public class StoreInformationDao extends AbstractTransactionalDao{
+	
+	@Autowired
+	private StoreInformationConfig storeInformationConfig;
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(StoreInformationDao.class);
+	
+	/**
+	 * This method will be invoked by Store Information service to check if user has added the passcode
+	 * @param userEmail
+	 * @return passcodeExistenceStatus
+	 */
+	public Integer checkPasscodeExists(String userEmail) {
+		LOGGER.debug("Received request from StoreInformationService to check if Passcode Exists"+userEmail);
+		Map<String,Object> user_email = new HashMap<> ();
+		user_email.put("user_email", userEmail);
+		LOGGER.debug("Executing SQL Query to check if passcode exists"+user_email+storeInformationConfig.getCheckpasscodeexists());
+		int status = getJdbcTemplate().queryForObject(storeInformationConfig.getCheckpasscodeexists(), user_email, Integer.class);
+		return status;
+	}
+	
+	/**
+	 * This method will be invoked by Store Information service to save information
+	 * @param storeInformationDto
+	 * @return savingStatus
+	 */
+	public Integer saveInformation(StoreInformationDto storeInformationDto) {
+		int saveInfoStatus;
+		LOGGER.debug("Received request in DAO from StoreInfoService to Store Information");
+		Map<String,Object> parameters = new HashMap<>();
+		parameters.put("user_email", storeInformationDto.getUserEmail());
+		parameters.put("info_key",storeInformationDto.getInfoKey());
+		parameters.put("info_content",storeInformationDto.getInfoContent());
+		parameters.put("type_of_info",storeInformationDto.getTypeOfInfo());
+		parameters.put("category_of_info",storeInformationDto.getCategoryOfInfo());
+		
+		LOGGER.debug("Executing query to check if record already exists");
+		try {
+			int checkRecordExistence = getJdbcTemplate().queryForObject(storeInformationConfig.getCheckrecordexists(), parameters, Integer.class);
+			
+			if(checkRecordExistence == 0) {
+				LOGGER.debug("Record doesn't exists");
+				LOGGER.debug("Executing query to insert information");
+				saveInfoStatus = getJdbcTemplate().update(storeInformationConfig.getStoreinformation(), parameters);
+			}
+			else {
+				LOGGER.debug("Record already exists");
+				LOGGER.debug("Executing query to update information");
+				saveInfoStatus = getJdbcTemplate().update(storeInformationConfig.getUpdateinfo(), parameters);
+			}
+		} catch (Exception e) {
+			LOGGER.error("Error occured while storing the information"+e);
+			saveInfoStatus=-1;
+			LOGGER.debug("Returning response to Service - "+saveInfoStatus);
+			return saveInfoStatus;
+		}
+		LOGGER.debug("Returning response to Service - if Information has been saved successfully"+saveInfoStatus);
+		return saveInfoStatus;
+	}
 
 }
