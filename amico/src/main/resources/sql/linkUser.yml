@@ -1,0 +1,3 @@
+link:
+ checkUserExistenceSql: SELECT EXISTS(SELECT 1 FROM user WHERE user_email = :user_email);
+ saveNewUserSql: INSERT INTO user (user_email) VALUES (:user_email);

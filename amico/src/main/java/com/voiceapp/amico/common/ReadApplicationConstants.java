@@ -9,9 +9,17 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix="constant")
 public class ReadApplicationConstants {
 
-    private String clientId;
     private String personalCategoryOfInfo;
     private String generalCategoryOfInfo;
+    private String authUserInfoUrl;
+
+	public String getAuthUserInfoUrl() {
+		return authUserInfoUrl;
+	}
+
+	public void setAuthUserInfoUrl(String authUserInfoUrl) {
+		this.authUserInfoUrl = authUserInfoUrl;
+	}
 
 	public String getPersonalCategoryOfInfo() {
 		return personalCategoryOfInfo;
@@ -29,13 +37,6 @@ public class ReadApplicationConstants {
 		this.generalCategoryOfInfo = generalCategoryOfInfo;
 	}
 
-	public String getClientId() {
-		return clientId;
-	}
-
-	public void setClientId(String clientId) {
-		this.clientId = clientId;
-	}
     
 }
 

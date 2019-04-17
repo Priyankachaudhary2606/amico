@@ -1,10 +1,16 @@
 package com.voiceapp.amico.controller;
 
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
+import java.net.URL;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Collections;
 
+import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,9 +27,11 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.jackson2.JacksonFactory;
+import com.voiceapp.amico.common.GetLinkedUserDetails;
 import com.voiceapp.amico.common.ReadApplicationConstants;
+import com.voiceapp.amico.common.ReadResponseMessages;
 import com.voiceapp.amico.dto.StoreInformationDto;
-import com.voiceapp.amico.service.GetDataForUser;
+import com.voiceapp.amico.service.AddNewUserService;
 import com.voiceapp.amico.service.StoreInformationService;
 
 /**
@@ -44,7 +52,7 @@ public class IntentController extends DialogflowApp{
 		
 	
 	@Autowired
-	private GetDataForUser getDataForUser;
+	private AddNewUserService addNewUserService;
 	
 	@Autowired
 	private StoreInformationService storeInformationService;
@@ -52,116 +60,53 @@ public class IntentController extends DialogflowApp{
 	@Autowired
 	private StoreInformationDto storeInformationDto;
 	
-	public String categoryInfo;
+	@Autowired
+	private GetLinkedUserDetails linkedUserDetails;
 	
-	private static final Logger LOGGER = LoggerFactory.getLogger(IntentController.class);
+	@Autowired
+	private ReadResponseMessages readResponseMessages;
 	
+	
+	String categoryInfo;
 	String email;
 	String firstName;
 	String lastName;
-
-
-	private String clientId = "471811019353-o3bdo4g9ruoflde3uk09upr8api132jr.apps.googleusercontent.com";
+	String accessToken;
+	String welcomeResponse;
+	String storeInfoResponse;
+	
+	private static final Logger LOGGER = LoggerFactory.getLogger(IntentController.class);
 	
 	/**
 	 * This method will be invoked by main controller when Welcome Intent will be called
 	 * It performs following tasks -
-	 * 1. Sends request to the Sign In Intent method to get User linked to the app
-	 * 2. Returns the response received from Sign In Intent method
+	 * 1. Retrieve access token
+	 * 2. Get Email id from auth0 authorization server using access token
+	 * 3. Check if user exists or not
+	 * 4. if user is new then add him/her to the database
+	 * 5. Send Welcome response to user
 	 * @param request
 	 * @return ActionResponse Welcome Message
+	 * @throws IOException 
+	 * @throws JSONException 
 	 */
-
-	
 	@ForIntent("Welcome Intent")
-	public ActionResponse welcome(ActionRequest request) {
-		LOGGER.debug("Request received from Main Controller in Wecome Intent");
+	public ActionResponse welcome(ActionRequest request) throws IOException, JSONException {
+		LOGGER.debug("Request received from Main Controller in Welcome Intent");
 		ResponseBuilder rb = getResponseBuilder(request);
-		LOGGER.debug("Sending Request to getSignInStatus method to check if user has signed In or not");
-	  return rb.add(new SignIn().setContext("To get your account details")).build();
-	}
-	
-	/**
-	 * This method will be invoked by main controller will get request from sign_in Intent
-	 * Or from welcome Intent method to check if user is signed in & to get user profile
-	 * It performs following tasks - 
-	 * 1. Check if User has signed In
-	 * 2. Send requests to Link User Service to check User Existence & save the new User
-	 * 3. Returns the response message on the basis of Sign In status of User 
-	 * @param request
-	 * @return ActionResponse welcome message
-	 */
-	
-	@ForIntent("sign_in")
-	public ActionResponse getSignInStatus(ActionRequest request) {
-		LOGGER.debug("Request received from welcome method in getSignInStatus");
-		
-	  ResponseBuilder responseBuilder = getResponseBuilder(request);
-	  LOGGER.debug("Check if user has signed In or not");
-	  
-	  if (request.isSignInGranted()) {
-		LOGGER.debug("The user has signed in");
-		LOGGER.debug("Getting User Profile");
-	    GoogleIdToken.Payload profile = getUserProfile(request.getUser().getIdToken());
-	    
-	    LOGGER.debug("User has linked from email id "+ profile.getEmail());
-	    LOGGER.debug("Sending request to GetDataForUser-getUserData method passing profile details");
-	    email = profile.getEmail();
-	    firstName =(String) profile.get("given_name");
-	    lastName = (String) profile.get("family_name");
-	    String responseFromService = getDataForUser.getUserData(email, firstName, lastName);
-	    responseBuilder.add(
-	        "Hey "
-	            + profile.get("given_name")
-	            + " How can I help you with my remembering skills");
-	    
-	  } else {
-		  
-		  LOGGER.debug("The user has not signed in");
-		  LOGGER.debug("Returning response -- User can come again when he/she wants to sign in & continue");
-	    responseBuilder.add("Ohh! I won't be able to help you, but I can keep your things safe & accessible anytime anywhere. Hope to see you soon.").endConversation();
-	  }
-	  return responseBuilder.build();
-	}
-
-	/**
-	 * This method will be invoked by getSignInStatus Method, to perform following tasks:
-	 * 1. Get the profile of User from idToken sent in the request
-	 * @param idToken
-	 * @return profile of User having email, name, locale & data in userStorage
-	 */
-	private GoogleIdToken.Payload getUserProfile(String idToken) {
-	  GoogleIdToken.Payload profile = null;
-	  try {
-	    profile = decodeIdToken(idToken);
-	  } catch (Exception e) {
-	    LOGGER.error("error decoding idtoken");
-	    LOGGER.error(e.toString());
-	  }
-	  return profile;
-	}
-	
-	
-	/**
-	 * This method will be invoked by getUserProfile method of SignIn process, to perform following tasks:
-	 * 1. Decode the idToken received in the request for SignIn
-	 * 2. Verified the user
-	 * 3. Returns the decoded idToken having information about User
-	 * @param idTokenString
-	 * @return decoded idToken
-	 * @throws GeneralSecurityException
-	 * @throws IOException
-	 */
-	private GoogleIdToken.Payload decodeIdToken(String idTokenString)
-	    throws GeneralSecurityException, IOException {
-	  HttpTransport transport = GoogleNetHttpTransport.newTrustedTransport();
-	  JacksonFactory jsonFactory = JacksonFactory.getDefaultInstance();
-	  GoogleIdTokenVerifier verifier =
-	      new GoogleIdTokenVerifier.Builder(transport, jsonFactory)
-	          .setAudience(Collections.singletonList(clientId))
-	          .build();
-	  GoogleIdToken idToken = verifier.verify(idTokenString);
-	  return idToken.getPayload();
+		LOGGER.debug("Retrieving access token from request");
+		accessToken=request.getUser().getAccessToken();		
+		LOGGER.debug("Calling method to get email id of user using accessToken");
+		email = linkedUserDetails.getUserEmail(accessToken);
+		if(email==null || email.isEmpty()) {
+			LOGGER.error("Could not get email id of user");
+			welcomeResponse = readResponseMessages.getErrorWelcomeMessage();
+		}else {
+			LOGGER.debug("Calling AddNewUserService method to add new user in the system");
+			welcomeResponse = addNewUserService.addUser(email);
+		}
+		rb.add(welcomeResponse);
+		return rb.build();
 	}
 
 	
@@ -174,12 +119,8 @@ public class IntentController extends DialogflowApp{
 	@ForIntent("bye")
 	 public ActionResponse make_name(ActionRequest request) {
 		ResponseBuilder responseBuilder = getResponseBuilder(request);
-	
-		GoogleIdToken.Payload profile = getUserProfile(request.getUser().getIdToken());
 	    responseBuilder.add(
-	        "Hey "
-	            + profile.get("given_name")
-	            + " How can I help you with my remembering skills").endConversation();
+	        "Bye, Will see you soon.").endConversation();
 		 
 	    return responseBuilder.build();
 	}
@@ -187,19 +128,33 @@ public class IntentController extends DialogflowApp{
 	/**
 	 * This method will be invoked when intent to store information will be asked by the user
 	 * @param request
+	 * @throws IOException 
+	 * @throws JSONException 
 	 * @response response to tell user if information has been saved successfully
 	 */
 	@ForIntent("StoreInfo")
-	public ActionResponse storeInformation(ActionRequest request){
+	public ActionResponse storeInformation(ActionRequest request) throws JSONException, IOException{
 		ResponseBuilder responseBuilder = getResponseBuilder(request);
 		LOGGER.debug("Received request in StoreInfo intent - Intent Controller ");
-		LOGGER.debug("Adding Parameters received in StoreInformation DTO ");
-		storeInformationDto = new StoreInformationDto("priyanka.chaudhary266@gmail.com", (String) request.getParameter("info_key"), (String) request.getParameter("info_content"),(String) request.getParameter("category_of_info"), "text");
-		LOGGER.debug("Calling storeInformation method in StoreInformation Service passing storeInformation DTO ");
-		String responsefromService = storeInformationService.storeInformation(storeInformationDto);
-		LOGGER.debug("Received response from service after Store Information process -- "+responsefromService);
-		LOGGER.debug("Building response to return the Google Assistant ");
-		responseBuilder.add(responsefromService);
+		LOGGER.debug("Retrieving access token from request");
+		accessToken=request.getUser().getAccessToken();		
+		LOGGER.debug("Calling method to get email id of user using accessToken");
+		email = linkedUserDetails.getUserEmail(accessToken);
+		
+		if(email==null || email.isEmpty()) {
+			LOGGER.error("Could not get email id of user");
+			storeInfoResponse = readResponseMessages.getErrorWelcomeMessage();
+		}
+		else {
+			LOGGER.debug("Got email id of user"+email);
+			storeInformationDto = new StoreInformationDto(email, (String) request.getParameter("info_key"), (String) request.getParameter("info_content"),(String) request.getParameter("category_of_info"), "text");
+			LOGGER.debug("Calling storeInformation method in StoreInformation Service passing storeInformation DTO ");
+			storeInfoResponse = storeInformationService.storeInformation(storeInformationDto);
+			LOGGER.debug("Received response from service after Store Information process ");
+		}
+		
+		LOGGER.debug("Building response to return the Google Assistant "+storeInfoResponse);
+		responseBuilder.add(storeInfoResponse);
 		return responseBuilder.build();
 	}
 

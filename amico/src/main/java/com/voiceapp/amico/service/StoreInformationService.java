@@ -107,7 +107,7 @@ public class StoreInformationService{
 		int storeGeneralInfoStatus = storeInformationDao.saveInformation(storeInformationDto);
 		if(storeGeneralInfoStatus == 1) {
 			LOGGER.debug("Information stored successfully");
-			storeInfoStatus=readResponseMessages.getInformationStoredSuccessfully1()+" "+readResponseMessages.getInformationStoredSuccessfully2();
+			storeInfoStatus=readResponseMessages.getInformationStoredSuccessfully1()+" "+storeInformationDto.getInfoKey()+" "+readResponseMessages.getInformationStoredSuccessfully2();
 		}
 		else {
 			LOGGER.debug("Storing information process couldn't be done successfully");

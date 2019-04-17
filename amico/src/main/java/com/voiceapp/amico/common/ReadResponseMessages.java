@@ -13,7 +13,21 @@ public class ReadResponseMessages {
 	private String informationStoredSuccessfully2;
 	private String passcodeIsEmpty;
 	private String errorStoreInformation;
+	private String welcomeMessage;
+	private String errorWelcomeMessage;	
 	
+	public String getErrorWelcomeMessage() {
+		return errorWelcomeMessage;
+	}
+	public void setErrorWelcomeMessage(String errorWelcomeMessage) {
+		this.errorWelcomeMessage = errorWelcomeMessage;
+	}
+	public String getWelcomeMessage() {
+		return welcomeMessage;
+	}
+	public void setWelcomeMessage(String welcomeMessage) {
+		this.welcomeMessage = welcomeMessage;
+	}
 	public String getInformationStoredSuccessfully1() {
 		return informationStoredSuccessfully1;
 	}
