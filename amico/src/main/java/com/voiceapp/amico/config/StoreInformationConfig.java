@@ -25,13 +25,7 @@ public class StoreInformationConfig {
      private String storeinformation;
 	  
 	  @Value("${updateinfo}")
-     private String updateinfo;
-	  
-	  @Value("${checkpasscodeexists}")
-     private String checkpasscodeexists;
-	  
-	  @Value("${checkrecordexists}")
-     private String checkrecordexists;
+     private String updateinfo;	 
      
      private static final Logger LOGGER = LoggerFactory.getLogger(StoreInformationConfig.class);
    
@@ -47,18 +41,6 @@ public class StoreInformationConfig {
 	public void setUpdateinfo(String updateinfo) {
 		this.updateinfo = updateinfo;
 	}
-	public String getCheckpasscodeexists() {
-		LOGGER.debug("Entered in Config SQL");
-		return checkpasscodeexists;
-	}
-	public void setCheckpasscodeexists(String checkpasscodeexists) {
-		this.checkpasscodeexists = checkpasscodeexists;
-	}
-	public String getCheckrecordexists() {
-		return checkrecordexists;
-	}
-	public void setCheckrecordexists(String checkrecordexists) {
-		this.checkrecordexists = checkrecordexists;
-	}
+	
 
 }

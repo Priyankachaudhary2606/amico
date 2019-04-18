@@ -1,7 +1,5 @@
 storeinfo:
 
- checkpasscodeexists: SELECT EXISTS(SELECT 1 FROM user where user_email=:user_email and passcode!=-1);
- checkrecordexists: SELECT EXISTS(SELECT 1 FROM information WHERE info_key=:info_key and id = (select id from user where user_email=:user_email));
  storeinformation: insert into information(info_key, info_content, type_of_info, category_of_info, id) values(:info_key, :info_content, :type_of_info, :category_of_info, (select id from user where user_email=:user_email));
  updateinfo: update information set info_content=:info_content, type_of_info=:type_of_info, category_of_info=:category_of_info where id = (select id from user where user_email=:user_email) and info_key=:info_key;
  

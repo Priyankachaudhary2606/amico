@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Repository;
 import com.voiceapp.amico.common.AbstractTransactionalDao;
+import com.voiceapp.amico.config.AppUtilityConfig;
 import com.voiceapp.amico.config.StoreInformationConfig;
 import com.voiceapp.amico.dto.StoreInformationDto;
 
@@ -25,22 +26,11 @@ public class StoreInformationDao extends AbstractTransactionalDao{
 	
 	@Autowired
 	private StoreInformationConfig storeInformationConfig;
+	
+	@Autowired
+	private AppUtilityConfig appUtilityConfig;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(StoreInformationDao.class);
-	
-	/**
-	 * This method will be invoked by Store Information service to check if user has added the passcode
-	 * @param userEmail
-	 * @return passcodeExistenceStatus
-	 */
-	public Integer checkPasscodeExists(String userEmail) {
-		LOGGER.debug("Received request from StoreInformationService to check if Passcode Exists"+userEmail);
-		Map<String,Object> user_email = new HashMap<> ();
-		user_email.put("user_email", userEmail);
-		LOGGER.debug("Executing SQL Query to check if passcode exists"+user_email+storeInformationConfig.getCheckpasscodeexists());
-		int status = getJdbcTemplate().queryForObject(storeInformationConfig.getCheckpasscodeexists(), user_email, Integer.class);
-		return status;
-	}
 	
 	/**
 	 * This method will be invoked by Store Information service to save information
@@ -59,7 +49,7 @@ public class StoreInformationDao extends AbstractTransactionalDao{
 		
 		LOGGER.debug("Executing query to check if record already exists");
 		try {
-			int checkRecordExistence = getJdbcTemplate().queryForObject(storeInformationConfig.getCheckrecordexists(), parameters, Integer.class);
+			int checkRecordExistence = getJdbcTemplate().queryForObject(appUtilityConfig.getCheckrecordexists(), parameters, Integer.class);
 			
 			if(checkRecordExistence == 0) {
 				LOGGER.debug("Record doesn't exists");

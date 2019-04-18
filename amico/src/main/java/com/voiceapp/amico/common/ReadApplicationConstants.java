@@ -12,6 +12,60 @@ public class ReadApplicationConstants {
     private String personalCategoryOfInfo;
     private String generalCategoryOfInfo;
     private String authUserInfoUrl;
+    private String textTypeOfInfo;
+    private String fileTypeOfInfo;
+    private String emailSender;
+    private String host;
+    private String port;
+    private String senderPassword;
+    
+	public String getSenderPassword() {
+		return senderPassword;
+	}
+
+	public void setSenderPassword(String senderPassword) {
+		this.senderPassword = senderPassword;
+	}
+
+	public String getEmailSender() {
+		return emailSender;
+	}
+
+	public void setEmailSender(String emailSender) {
+		this.emailSender = emailSender;
+	}
+
+	public String getHost() {
+		return host;
+	}
+
+	public void setHost(String host) {
+		this.host = host;
+	}
+
+	public String getPort() {
+		return port;
+	}
+
+	public void setPort(String port) {
+		this.port = port;
+	}
+
+	public String getTextTypeOfInfo() {
+		return textTypeOfInfo;
+	}
+
+	public void setTextTypeOfInfo(String textTypeOfInfo) {
+		this.textTypeOfInfo = textTypeOfInfo;
+	}
+
+	public String getFileTypeOfInfo() {
+		return fileTypeOfInfo;
+	}
+
+	public void setFileTypeOfInfo(String fileTypeOfInfo) {
+		this.fileTypeOfInfo = fileTypeOfInfo;
+	}
 
 	public String getAuthUserInfoUrl() {
 		return authUserInfoUrl;

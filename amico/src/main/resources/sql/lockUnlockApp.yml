@@ -1,0 +1,5 @@
+applock:
+ lockapp: update user set lock_flag=1 where user_email=:user_email;
+ unlockapp: update user set lock_flag=0 where user_email=:user_email;
+ savepasscode: update user set passcode=:passcode where user_email=:user_email;
+ matchpasscode: SELECT EXISTS(SELECT 1 FROM user where user_email=:user_email and passcode=:passcode);

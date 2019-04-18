@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.google.api.services.dialogflow_fulfillment.v2.DialogflowFulfillment;
+import com.voiceapp.amico.common.AppPasscodeUtility;
 import com.voiceapp.amico.common.ReadApplicationConstants;
 import com.voiceapp.amico.common.ReadResponseMessages;
 import com.voiceapp.amico.dao.StoreInformationDao;
@@ -35,6 +36,9 @@ public class StoreInformationService{
 	
 	@Autowired
 	private ReadResponseMessages readResponseMessages;
+	
+	@Autowired
+	private AppPasscodeUtility appPasscodeUtility;
 	
 	/**
 	 * This method will be main performer to store any information, by performing following tasks:
@@ -75,7 +79,7 @@ public class StoreInformationService{
 	 */
 	public String storePersonalInfo(StoreInformationDto storeInformationDto) {
 		
-		int checkPasscodeExistence = storeInformationDao.checkPasscodeExists(storeInformationDto.getUserEmail());
+		int checkPasscodeExistence = appPasscodeUtility.checkPasscodeExists(storeInformationDto.getUserEmail());
 		LOGGER.debug("Passcode Existence Status is " + checkPasscodeExistence);
 		int storePersonalInfoStatus = storeInformationDao.saveInformation(storeInformationDto);
 		LOGGER.debug("Stored Information Status is " + storePersonalInfoStatus);

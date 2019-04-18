@@ -32,6 +32,8 @@ import com.voiceapp.amico.common.ReadApplicationConstants;
 import com.voiceapp.amico.common.ReadResponseMessages;
 import com.voiceapp.amico.dto.StoreInformationDto;
 import com.voiceapp.amico.service.AddNewUserService;
+import com.voiceapp.amico.service.LockUnlockAppService;
+import com.voiceapp.amico.service.RetrieveInformationService;
 import com.voiceapp.amico.service.StoreInformationService;
 
 /**
@@ -43,7 +45,7 @@ import com.voiceapp.amico.service.StoreInformationService;
  * Intent Controller will get the request from Main Controller when Application URL will be accessed
  * And against each Intent identified from @ForIntent has a function map which processing the required tasks
  * 
- *	@Reviewed By -
+ *
  */
 
 
@@ -66,6 +68,12 @@ public class IntentController extends DialogflowApp{
 	@Autowired
 	private ReadResponseMessages readResponseMessages;
 	
+	@Autowired
+	private LockUnlockAppService lockUnlockAppService;
+	
+	@Autowired
+	private RetrieveInformationService retrieveInformationService;
+	
 	
 	String categoryInfo;
 	String email;
@@ -74,6 +82,9 @@ public class IntentController extends DialogflowApp{
 	String accessToken;
 	String welcomeResponse;
 	String storeInfoResponse;
+	String lockAppResponse;
+	String unlockAppResponse;
+	String retrieveInfoVoiceResponse;
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(IntentController.class);
 	
@@ -157,5 +168,108 @@ public class IntentController extends DialogflowApp{
 		responseBuilder.add(storeInfoResponse);
 		return responseBuilder.build();
 	}
+	
+	
+	/**
+	 * This method will be invoked when intent to Lock Personal information will be asked by the user
+	 * @param request
+	 * @throws IOException 
+	 * @throws JSONException 
+	 */
+	@ForIntent("Lock")
+	public ActionResponse lockApp(ActionRequest request) throws JSONException, IOException {
+		ResponseBuilder responseBuilder = getResponseBuilder(request);
+		LOGGER.debug("Received request in Lock information intent - Intent Controller ");
+		LOGGER.debug("Retrieving access token from request");
+		accessToken=request.getUser().getAccessToken();		
+		LOGGER.debug("Calling method to get email id of user using accessToken");
+		email = linkedUserDetails.getUserEmail(accessToken);
+		
+		if(email==null || email.isEmpty()) {
+			LOGGER.error("Could not get email id of user");
+			lockAppResponse = readResponseMessages.getErrorWelcomeMessage();
+		}
+		else {
+			LOGGER.debug("Got email id of user"+email);
+			LOGGER.debug("Retrieving passcode");
+			Double passkey = (Double) request.getParameter("passcode");
+			int passcode = passkey.intValue();
+			LOGGER.debug("Calling lockApp method in LockUnlock Service passing email id & passcode "+email+" "+passcode);
+			lockAppResponse = lockUnlockAppService.lockApp(email, passcode);
+			LOGGER.debug("Received response from service after lock App process ");
+		}
+		
+		LOGGER.debug("Building response to return the Google Assistant "+lockAppResponse);
+		responseBuilder.add(lockAppResponse);
+		return responseBuilder.build();
+	}
+	
+/**
+ * This method will be invoked when user attempts to unlock their personal information	
+ * @param request
+ * @return responseBuilder
+ * @throws JSONException
+ * @throws IOException
+ */
+	@ForIntent("Unlock")
+	public ActionResponse unlockApp(ActionRequest request) throws JSONException, IOException {
+		ResponseBuilder responseBuilder = getResponseBuilder(request);
+		LOGGER.debug("Received request in unlock information intent - Intent Controller ");
+		LOGGER.debug("Retrieving access token from request");
+		accessToken=request.getUser().getAccessToken();		
+		LOGGER.debug("Calling method to get email id of user using accessToken");
+		email = linkedUserDetails.getUserEmail(accessToken);
+		
+		if(email==null || email.isEmpty()) {
+			LOGGER.error("Could not get email id of user");
+			unlockAppResponse = readResponseMessages.getErrorWelcomeMessage();
+		}
+		else {
+			LOGGER.debug("Got email id of user"+email);
+			LOGGER.debug("Retrieving passcode");
+			Double passkey = (Double) request.getParameter("passcode");
+			int passcode = passkey.intValue();
+			LOGGER.debug("Calling unlockApp method in LockUnlock Service passing email id & passcode "+email+" ,"+passcode);
+			unlockAppResponse = lockUnlockAppService.unlockApp(email, passcode);
+			LOGGER.debug("Received response from service after unlock App process ");
+		}
+		
+		LOGGER.debug("Building response to return the Google Assistant "+unlockAppResponse);
+		responseBuilder.add(unlockAppResponse);
+		return responseBuilder.build();
+	}
 
+/**
+ * This method will be invoked when user will ask to retrieve the information over voice
+ * @param request
+ * @return
+ * @throws JSONException
+ * @throws IOException
+ */
+	@ForIntent("RetrieveInfo")
+	public ActionResponse retrieveInfoOverVoice(ActionRequest request) throws JSONException, IOException {
+		ResponseBuilder responseBuilder = getResponseBuilder(request);
+		LOGGER.debug("Received request in retrieve information intent - Intent Controller ");
+		LOGGER.debug("Retrieving access token from request");
+		accessToken=request.getUser().getAccessToken();		
+		LOGGER.debug("Calling method to get email id of user using accessToken");
+		email = linkedUserDetails.getUserEmail(accessToken);
+		
+		if(email==null || email.isEmpty()) {
+			LOGGER.error("Could not get email id of user");
+			unlockAppResponse = readResponseMessages.getErrorWelcomeMessage();
+		}
+		else {
+			LOGGER.debug("Got email id of user"+email);
+			LOGGER.debug("Retrieving infomation key");
+			String info_key = (String) request.getParameter("info_key");
+			LOGGER.debug("Calling retrieveInfoOverVoice method in RetrieveInformationService passing email id & info key "+email+" ,"+info_key);
+			retrieveInfoVoiceResponse = retrieveInformationService.retrieveInfoOverVoice(email, info_key);
+			LOGGER.debug("Received response from service after retrieving information process ");
+		}
+		
+		LOGGER.debug("Building response to return the Google Assistant "+retrieveInfoVoiceResponse);
+		responseBuilder.add(retrieveInfoVoiceResponse);
+		return responseBuilder.build();
+	}
 }
