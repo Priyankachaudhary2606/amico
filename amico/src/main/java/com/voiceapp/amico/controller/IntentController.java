@@ -101,7 +101,7 @@ public class IntentController extends DialogflowApp{
 	 * @throws IOException 
 	 * @throws JSONException 
 	 */
-	@ForIntent("Welcome Intent")
+	@ForIntent("WelcomeIntent")
 	public ActionResponse welcome(ActionRequest request) throws IOException, JSONException {
 		LOGGER.debug("Request received from Main Controller in Welcome Intent");
 		ResponseBuilder rb = getResponseBuilder(request);
@@ -171,7 +171,7 @@ public class IntentController extends DialogflowApp{
 	
 	
 	/**
-	 * This method will be invoked when intent to Lock Personal information will be asked by the user
+	 * This method will be invoked when intent to Lock Personal information will be asked by the user after Storing the infromation
 	 * @param request
 	 * @throws IOException 
 	 * @throws JSONException 
@@ -205,7 +205,42 @@ public class IntentController extends DialogflowApp{
 	}
 	
 /**
- * This method will be invoked when user attempts to unlock their personal information	
+ * This is the method which will be invoked anytime independently to lock the personal infromation
+ * @param request
+ * @return
+ * @throws JSONException
+ * @throws IOException
+ */
+	@ForIntent("LockIndependent")
+	public ActionResponse lock_App(ActionRequest request) throws JSONException, IOException {
+		ResponseBuilder responseBuilder = getResponseBuilder(request);
+		LOGGER.debug("Received request in LockIndependent information intent - Intent Controller ");
+		LOGGER.debug("Retrieving access token from request");
+		accessToken=request.getUser().getAccessToken();		
+		LOGGER.debug("Calling method to get email id of user using accessToken");
+		email = linkedUserDetails.getUserEmail(accessToken);
+		
+		if(email==null || email.isEmpty()) {
+			LOGGER.error("Could not get email id of user");
+			lockAppResponse = readResponseMessages.getErrorWelcomeMessage();
+		}
+		else {
+			LOGGER.debug("Got email id of user"+email);
+			LOGGER.debug("Retrieving passcode");
+			Double passkey = (Double) request.getParameter("passcode");
+			int passcode = passkey.intValue();
+			LOGGER.debug("Calling lockApp method in LockUnlock Service passing email id & passcode "+email+" "+passcode);
+			lockAppResponse = lockUnlockAppService.lockApp(email, passcode);
+			LOGGER.debug("Received response from service after lock App process ");
+		}
+		
+		LOGGER.debug("Building response to return the Google Assistant "+lockAppResponse);
+		responseBuilder.add(lockAppResponse);
+		return responseBuilder.build();
+	}
+	
+/**
+ * This method will be invoked when user attempts to unlock their personal information after retrieving the information
  * @param request
  * @return responseBuilder
  * @throws JSONException
@@ -213,6 +248,78 @@ public class IntentController extends DialogflowApp{
  */
 	@ForIntent("Unlock")
 	public ActionResponse unlockApp(ActionRequest request) throws JSONException, IOException {
+		ResponseBuilder responseBuilder = getResponseBuilder(request);
+		LOGGER.debug("Received request in Unlock information intent - Intent Controller ");
+		LOGGER.debug("Retrieving access token from request");
+		accessToken=request.getUser().getAccessToken();		
+		LOGGER.debug("Calling method to get email id of user using accessToken");
+		email = linkedUserDetails.getUserEmail(accessToken);
+		
+		if(email==null || email.isEmpty()) {
+			LOGGER.error("Could not get email id of user");
+			unlockAppResponse = readResponseMessages.getErrorWelcomeMessage();
+		}
+		else {
+			LOGGER.debug("Got email id of user"+email);
+			LOGGER.debug("Retrieving passcode");
+			Double passkey = (Double) request.getParameter("passcode");
+			int passcode = passkey.intValue();
+			LOGGER.debug("Calling unlockApp method in LockUnlock Service passing email id & passcode "+email+" ,"+passcode);
+			unlockAppResponse = lockUnlockAppService.unlockApp(email, passcode);
+			LOGGER.debug("Received response from service after unlock App process ");
+		}
+		
+		LOGGER.debug("Building response to return the Google Assistant "+unlockAppResponse);
+		responseBuilder.add(unlockAppResponse);
+		return responseBuilder.build();
+	}
+
+/**
+ * This method will be invoked when user attempts to unlock their personal information any time independently, without following some intent
+ * @param request
+ * @return
+ * @throws JSONException
+ * @throws IOException
+ */
+	
+	@ForIntent("UnlockIndependent")
+	public ActionResponse unlock_App(ActionRequest request) throws JSONException, IOException {
+		ResponseBuilder responseBuilder = getResponseBuilder(request);
+		LOGGER.debug("Received request in unlock information intent - Intent Controller ");
+		LOGGER.debug("Retrieving access token from request");
+		accessToken=request.getUser().getAccessToken();		
+		LOGGER.debug("Calling method to get email id of user using accessToken");
+		email = linkedUserDetails.getUserEmail(accessToken);
+		
+		if(email==null || email.isEmpty()) {
+			LOGGER.error("Could not get email id of user");
+			unlockAppResponse = readResponseMessages.getErrorWelcomeMessage();
+		}
+		else {
+			LOGGER.debug("Got email id of user"+email);
+			LOGGER.debug("Retrieving passcode");
+			Double passkey = (Double) request.getParameter("passcode");
+			int passcode = passkey.intValue();
+			LOGGER.debug("Calling unlockApp method in LockUnlock Service passing email id & passcode "+email+" ,"+passcode);
+			unlockAppResponse = lockUnlockAppService.unlockApp(email, passcode);
+			LOGGER.debug("Received response from service after unlock App process ");
+		}
+		
+		LOGGER.debug("Building response to return the Google Assistant "+unlockAppResponse);
+		responseBuilder.add(unlockAppResponse);
+		return responseBuilder.build();
+	}
+
+/**
+ * This method will be invoked when user attempts to unlock their personal information as a followed up intent of UnlockShareFollowup
+ * @param request
+ * @return
+ * @throws JSONException
+ * @throws IOException
+ */
+	
+	@ForIntent("UnlockShareFollowup")	
+	public ActionResponse unlock_share_intent(ActionRequest request) throws JSONException, IOException {
 		ResponseBuilder responseBuilder = getResponseBuilder(request);
 		LOGGER.debug("Received request in unlock information intent - Intent Controller ");
 		LOGGER.debug("Retrieving access token from request");
@@ -266,6 +373,40 @@ public class IntentController extends DialogflowApp{
 			LOGGER.debug("Calling retrieveInfoOverVoice method in RetrieveInformationService passing email id & info key "+email+" ,"+info_key);
 			retrieveInfoVoiceResponse = retrieveInformationService.retrieveInfoOverVoice(email, info_key);
 			LOGGER.debug("Received response from service after retrieving information process ");
+		}
+		
+		LOGGER.debug("Building response to return the Google Assistant "+retrieveInfoVoiceResponse);
+		responseBuilder.add(retrieveInfoVoiceResponse);
+		return responseBuilder.build();
+	}
+	
+/**
+ * This method will be invoked when user will ask to retrieve the information over user's email id
+ * @param request
+ * @return
+ * @throws JSONException
+ * @throws IOException
+ */
+	@ForIntent("RetrieveInfoMail")
+	public ActionResponse retrieveInfoOverMail(ActionRequest request) throws JSONException, IOException {
+		ResponseBuilder responseBuilder = getResponseBuilder(request);
+		LOGGER.debug("Received request in retrieve information over mail intent - Intent Controller ");
+		LOGGER.debug("Retrieving access token from request");
+		accessToken=request.getUser().getAccessToken();		
+		LOGGER.debug("Calling method to get email id of user using accessToken");
+		email = linkedUserDetails.getUserEmail(accessToken);
+		
+		if(email==null || email.isEmpty()) {
+			LOGGER.error("Could not get email id of user");
+			unlockAppResponse = readResponseMessages.getErrorWelcomeMessage();
+		}
+		else {
+			LOGGER.debug("Got email id of user"+email);
+			LOGGER.debug("Retrieving infomation key");
+			String info_key = (String) request.getParameter("info_key");
+			LOGGER.debug("Calling retrieveInfoOverMail method in RetrieveInformationService passing email id & info key "+email+" ,"+info_key);
+			retrieveInfoVoiceResponse = retrieveInformationService.retrieveInfoOverMail(email, info_key);
+			LOGGER.debug("Received response from service after retrieving information over mail process ");
 		}
 		
 		LOGGER.debug("Building response to return the Google Assistant "+retrieveInfoVoiceResponse);

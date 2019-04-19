@@ -38,6 +38,8 @@ public class SendMailUtility {
 
 	
     public int sendInformationOverMail(String email, String info_key, String file_path) {
+    	LOGGER.debug("Received request to send the mail of file information");
+    	LOGGER.debug("In method - sendInformationOverMail in SendMailUtility");
 	
 	// Recipient's email ID needs to be mentioned.
     String to = email;
@@ -63,7 +65,6 @@ public class SendMailUtility {
           }
        });
 
-  
        Message message = new MimeMessage(session);
        try {
       
@@ -87,7 +88,7 @@ public class SendMailUtility {
 
        multipart.addBodyPart(messageBodyPart);
 
-
+       LOGGER.debug("Adding the file attachment in mail");
        // Attachment
        messageBodyPart = new MimeBodyPart();
        String filename = file_path;
@@ -114,5 +115,62 @@ public class SendMailUtility {
     	   return 0;
        }
        }
+    
+    public int sendTextInformationOverMail(String email, String info_key, String messageContent){
+    	LOGGER.debug("Received request to send the mail of text information");
+    	LOGGER.debug("In method - sendTextInformationOverMail in SendMailUtility");
+    	// Recipient's email ID needs to be mentioned.
+        String to = email;
+
+        // Sender's email ID needs to be mentioned
+        String from = readApplicationConstants.getEmailSender();
+
+        final String username = readApplicationConstants.getEmailSender();
+        final String password = readApplicationConstants.getSenderPassword();
+
+        Properties props = new Properties();
+        props.put("mail.smtp.auth", "true");
+        props.put("mail.smtp.starttls.enable", "true");
+        props.put("mail.smtp.host", readApplicationConstants.getHost());
+        props.put("mail.smtp.port", readApplicationConstants.getPort());
+        
+
+        // Get the Session object.
+        Session session = Session.getInstance(props,
+           new javax.mail.Authenticator() {
+              protected PasswordAuthentication getPasswordAuthentication() {
+                 return new PasswordAuthentication(username, password);
+              }
+           });
+
+      
+           Message message = new MimeMessage(session);
+           try {
+          
+           message.setFrom(new InternetAddress(from));
+
+           
+           message.setRecipients(Message.RecipientType.TO,
+              InternetAddress.parse(to));
+
+           
+           message.setSubject(info_key.toUpperCase()+" from Amigo");
+
+           
+        // Sending complete message parts
+           message.setContent(messageContent,"text/html");
+
+        // Send message
+           Transport.send(message);
+           LOGGER.debug("Mail has been sent successfully");
+           LOGGER.debug("Returning 1 ");
+           return 1;
+           }
+           catch(Exception e){
+        	   LOGGER.error("Exception occured while sending mail from Retrieve Text information over mail "+e);
+        	   LOGGER.error("Returning 0");
+        	   return 0;
+           }
+    }
 
 }
