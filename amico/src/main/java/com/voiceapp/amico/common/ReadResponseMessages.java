@@ -13,6 +13,10 @@ public class ReadResponseMessages {
 	private String informationStoredSuccessfully2;
 	private String passcodeIsEmpty;
 	private String errorStoreInformation;
+	private String individualInformationSavedSuccessfully1;
+	private String individualInformationSavedSuccessfully2;
+	private String individualInformationSaveFailed;
+	private String invalidInformation;
 	private String welcomeMessage;
 	private String errorWelcomeMessage;	
 	private String lockAppSuccessMessage;
@@ -22,9 +26,11 @@ public class ReadResponseMessages {
 	private String saveCodeLockFailedMessage1;
 	private String saveCodeLockFailedMessage2;
 	private String passcodeMismatch;
+	private String invalidLockPasscode;
 	private String unlockPasscodeEmpty;
 	private String unlockFailedMessage;
 	private String unlockSuccessFulMessage;
+	private String invalidUnlockPasscode;
 	private String noInfoFound;
 	private String mailedInfo;
 	private String mailedUnsuccessful;
@@ -104,6 +110,14 @@ public class ReadResponseMessages {
 	public void setInfoLocked2(String infoLocked2) {
 		this.infoLocked2 = infoLocked2;
 	}
+	
+	
+	public String getInvalidUnlockPasscode() {
+		return invalidUnlockPasscode;
+	}
+	public void setInvalidUnlockPasscode(String invalidUnlockPasscode) {
+		this.invalidUnlockPasscode = invalidUnlockPasscode;
+	}
 	public String getUnlockPasscodeEmpty() {
 		return unlockPasscodeEmpty;
 	}
@@ -124,6 +138,13 @@ public class ReadResponseMessages {
 	}
 	public String getPasscodeMismatch() {
 		return passcodeMismatch;
+	}
+	
+	public String getInvalidLockPasscode() {
+		return invalidLockPasscode;
+	}
+	public void setInvalidLockPasscode(String invalidLockPasscode) {
+		this.invalidLockPasscode = invalidLockPasscode;
 	}
 	public void setPasscodeMismatch(String passcodeMismatch) {
 		this.passcodeMismatch = passcodeMismatch;
@@ -175,6 +196,32 @@ public class ReadResponseMessages {
 	}
 	public void setWelcomeMessage(String welcomeMessage) {
 		this.welcomeMessage = welcomeMessage;
+	}
+	
+	
+	public String getInvalidInformation() {
+		return invalidInformation;
+	}
+	public void setInvalidInformation(String invalidInformation) {
+		this.invalidInformation = invalidInformation;
+	}
+	public String getIndividualInformationSavedSuccessfully1() {
+		return individualInformationSavedSuccessfully1;
+	}
+	public void setIndividualInformationSavedSuccessfully1(String individualInformationSavedSuccessfully1) {
+		this.individualInformationSavedSuccessfully1 = individualInformationSavedSuccessfully1;
+	}
+	public String getIndividualInformationSavedSuccessfully2() {
+		return individualInformationSavedSuccessfully2;
+	}
+	public void setIndividualInformationSavedSuccessfully2(String individualInformationSavedSuccessfully2) {
+		this.individualInformationSavedSuccessfully2 = individualInformationSavedSuccessfully2;
+	}
+	public String getIndividualInformationSaveFailed() {
+		return individualInformationSaveFailed;
+	}
+	public void setIndividualInformationSaveFailed(String individualInformationSaveFailed) {
+		this.individualInformationSaveFailed = individualInformationSaveFailed;
 	}
 	public String getInformationStoredSuccessfully1() {
 		return informationStoredSuccessfully1;

@@ -32,11 +32,13 @@ import com.voiceapp.amico.common.GetLinkedUserDetails;
 import com.voiceapp.amico.common.ReadApplicationConstants;
 import com.voiceapp.amico.common.ReadResponseMessages;
 import com.voiceapp.amico.dto.LinkedUserProfileDto;
+import com.voiceapp.amico.dto.StoreIndividualInfoDto;
 import com.voiceapp.amico.dto.StoreInformationDto;
 import com.voiceapp.amico.service.AddNewUserService;
 import com.voiceapp.amico.service.LockUnlockAppService;
 import com.voiceapp.amico.service.RetrieveInformationService;
 import com.voiceapp.amico.service.ShareInformationService;
+import com.voiceapp.amico.service.StoreIndividualInfoService;
 import com.voiceapp.amico.service.StoreInformationService;
 
 /**
@@ -80,6 +82,11 @@ public class IntentController extends DialogflowApp{
 	@Autowired
 	private ShareInformationService shareInformationService;
 	
+	@Autowired
+	private StoreIndividualInfoService storeIndividualInfoService;
+	
+
+	
 	
 	String categoryInfo;
 	String email;
@@ -88,6 +95,7 @@ public class IntentController extends DialogflowApp{
 	String accessToken;
 	String welcomeResponse;
 	String storeInfoResponse;
+	String storeIndividualInfoResponse;
 	String lockAppResponse;
 	String unlockAppResponse;
 	String retrieveInfoVoiceResponse;
@@ -127,29 +135,15 @@ public class IntentController extends DialogflowApp{
 		return rb.build();
 	}
 
-	
-	/**
-	 * This method will be invoked when bye intent will be said by user
-	 * @param request
-	 * @return response to end the conversation
-	 */
-	
-	@ForIntent("bye")
-	 public ActionResponse make_name(ActionRequest request) {
-		ResponseBuilder responseBuilder = getResponseBuilder(request);
-	    responseBuilder.add(
-	        "Bye, Will see you soon.").endConversation();
-		 
-	    return responseBuilder.build();
-	}
 
-	/**
-	 * This method will be invoked when intent to store information will be asked by the user
-	 * @param request
-	 * @throws IOException 
-	 * @throws JSONException 
-	 * @response response to tell user if information has been saved successfully
-	 */
+
+/**
+ * This method will be invoked when intent to store information will be asked by the user
+ * @param request
+ * @throws IOException 
+ * @throws JSONException 
+ * @response response to tell user if information has been saved successfully
+ */
 	@ForIntent("StoreInfo")
 	public ActionResponse storeInformation(ActionRequest request) throws JSONException, IOException{
 		ResponseBuilder responseBuilder = getResponseBuilder(request);
@@ -176,13 +170,66 @@ public class IntentController extends DialogflowApp{
 		return responseBuilder.build();
 	}
 	
+/**
+ * This method will be invoked when intent to store Individual information that will be asked by the user
+ * @param request
+ * @throws IOException 
+ * @throws JSONException 
+ * @response response to tell user if contact details has been saved successfully
+ */
+		@ForIntent("StoreIndividualInfo")
+		public ActionResponse storeIndividualInformation(ActionRequest request) throws JSONException, IOException{
+			ResponseBuilder responseBuilder = getResponseBuilder(request);
+			LOGGER.debug("Received request in StoreIndivialInfo intent - Intent Controller ");
+			LOGGER.debug("Retrieving access token from request");
+			accessToken=request.getUser().getAccessToken();		
+			LOGGER.debug("Calling method to get email id of user using accessToken");
+			email = linkedUserDetails.getUserEmail(accessToken);
+			
+			if(email==null || email.isEmpty()) {
+				LOGGER.error("Could not get email id of user");
+				storeInfoResponse = readResponseMessages.getErrorWelcomeMessage();
+			}
+			else {
+				LOGGER.debug("Got email id of user"+email);
+				LOGGER.debug("Retrieving email_id of contact person that needs to be stored by user");
+				String individual_email_id = linkedUserDetails.getElementFromParameterString(request.getParameter("p_content_type").toString(), "email_address");
+				
+				if(individual_email_id==null || individual_email_id.isEmpty()) {
+					LOGGER.debug("User didn't shared the email_id");
+					LOGGER.debug("Retrieving if user has asked to store contact number or not");
+					String individual_number = linkedUserDetails.getElementFromParameterString(request.getParameter("p_content_type").toString(), "number");
+					
+					if(individual_number==null || individual_number.isEmpty()) {
+						LOGGER.debug("User didn't shared the contact number/email ID");
+						LOGGER.debug("Hence, user has given some invalid inputs");
+						storeIndividualInfoResponse=readResponseMessages.getInvalidInformation();
+					}
+					
+					else {
+						StoreIndividualInfoDto storeIndividualInfoDto = new StoreIndividualInfoDto(email, (String) request.getParameter("individual_contact"), individual_number);
+						storeIndividualInfoResponse= storeIndividualInfoService.storeIndividualInformation(storeIndividualInfoDto);
+					}
+				}
+				else {
+					StoreIndividualInfoDto storeIndividualInfoDto = new StoreIndividualInfoDto(email, (String) request.getParameter("individual_contact"), individual_email_id);
+					storeIndividualInfoResponse= storeIndividualInfoService.storeIndividualInformation(storeIndividualInfoDto);
+				}
+				
+			}
+			
+			LOGGER.debug("Building response to return the Google Assistant "+storeIndividualInfoResponse);
+			responseBuilder.add(storeIndividualInfoResponse);
+			return responseBuilder.build();
+		}
 	
-	/**
-	 * This method will be invoked when intent to Lock Personal information will be asked by the user after Storing the infromation
-	 * @param request
-	 * @throws IOException 
-	 * @throws JSONException 
-	 */
+	
+/**
+ * This method will be invoked when intent to Lock Personal information will be asked by the user after Storing the infromation
+ * @param request
+ * @throws IOException 
+ * @throws JSONException 
+ */
 	@ForIntent("Lock")
 	public ActionResponse lockApp(ActionRequest request) throws JSONException, IOException {
 		ResponseBuilder responseBuilder = getResponseBuilder(request);
@@ -201,9 +248,17 @@ public class IntentController extends DialogflowApp{
 			LOGGER.debug("Retrieving passcode");
 			Double passkey = (Double) request.getParameter("passcode");
 			int passcode = passkey.intValue();
-			LOGGER.debug("Calling lockApp method in LockUnlock Service passing email id & passcode "+email+" "+passcode);
-			lockAppResponse = lockUnlockAppService.lockApp(email, passcode);
-			LOGGER.debug("Received response from service after lock App process ");
+			int lengthOfPasscode = String.valueOf(passcode).length();
+			if(lengthOfPasscode>4) {
+				LOGGER.debug("Passcode is of more than 4 digits");
+				lockAppResponse=readResponseMessages.getInvalidLockPasscode();
+			}
+			else {
+				LOGGER.debug("Calling lockApp method in LockUnlock Service passing email id & passcode "+email+" "+passcode);
+				lockAppResponse = lockUnlockAppService.lockApp(email, passcode);
+				LOGGER.debug("Received response from service after lock App process ");
+			}
+			
 		}
 		
 		LOGGER.debug("Building response to return the Google Assistant "+lockAppResponse);
@@ -211,8 +266,10 @@ public class IntentController extends DialogflowApp{
 		return responseBuilder.build();
 	}
 	
+	
+	
 /**
- * This is the method which will be invoked anytime independently to lock the personal infromation
+ * This is the method which will be invoked any time independently to lock the personal infromation
  * @param request
  * @return
  * @throws JSONException
@@ -233,18 +290,27 @@ public class IntentController extends DialogflowApp{
 		}
 		else {
 			LOGGER.debug("Got email id of user"+email);
-			LOGGER.debug("Retrieving passcode");
+			LOGGER.debug("Retrieving passcode"+request.getParameter("passcode"));
 			Double passkey = (Double) request.getParameter("passcode");
 			int passcode = passkey.intValue();
-			LOGGER.debug("Calling lockApp method in LockUnlock Service passing email id & passcode "+email+" "+passcode);
-			lockAppResponse = lockUnlockAppService.lockApp(email, passcode);
-			LOGGER.debug("Received response from service after lock App process ");
+			int lengthOfPasscode = String.valueOf(passcode).length();
+			if(lengthOfPasscode>4) {
+				LOGGER.debug("Passcode is of more than 4 digits");
+				lockAppResponse=readResponseMessages.getInvalidLockPasscode();
+			}
+			else {
+				LOGGER.debug("Calling lockApp method in LockUnlock Service passing email id & passcode "+email+" "+passcode);
+				lockAppResponse = lockUnlockAppService.lockApp(email, passcode);
+				LOGGER.debug("Received response from service after lock App process ");
+			}
 		}
 		
 		LOGGER.debug("Building response to return the Google Assistant "+lockAppResponse);
 		responseBuilder.add(lockAppResponse);
 		return responseBuilder.build();
 	}
+	
+	
 	
 /**
  * This method will be invoked when user attempts to unlock their personal information after retrieving the information
@@ -271,9 +337,15 @@ public class IntentController extends DialogflowApp{
 			LOGGER.debug("Retrieving passcode");
 			Double passkey = (Double) request.getParameter("passcode");
 			int passcode = passkey.intValue();
+			int lengthOfPasscode = String.valueOf(passcode).length();
+			if(lengthOfPasscode>4) {
+				LOGGER.debug("Passcode is of more than 4 digits");
+				unlockAppResponse=readResponseMessages.getInvalidUnlockPasscode();
+			}else {
 			LOGGER.debug("Calling unlockApp method in LockUnlock Service passing email id & passcode "+email+" ,"+passcode);
 			unlockAppResponse = lockUnlockAppService.unlockApp(email, passcode);
 			LOGGER.debug("Received response from service after unlock App process ");
+			}
 		}
 		
 		LOGGER.debug("Building response to return the Google Assistant "+unlockAppResponse);
@@ -307,9 +379,16 @@ public class IntentController extends DialogflowApp{
 			LOGGER.debug("Retrieving passcode");
 			Double passkey = (Double) request.getParameter("passcode");
 			int passcode = passkey.intValue();
+			int lengthOfPasscode = String.valueOf(passcode).length();
+			if(lengthOfPasscode>4) {
+				LOGGER.debug("Passcode is of more than 4 digits");
+				unlockAppResponse=readResponseMessages.getInvalidUnlockPasscode();
+			}
+			else {
 			LOGGER.debug("Calling unlockApp method in LockUnlock Service passing email id & passcode "+email+" ,"+passcode);
 			unlockAppResponse = lockUnlockAppService.unlockApp(email, passcode);
 			LOGGER.debug("Received response from service after unlock App process ");
+			}
 		}
 		
 		LOGGER.debug("Building response to return the Google Assistant "+unlockAppResponse);
@@ -343,9 +422,16 @@ public class IntentController extends DialogflowApp{
 			LOGGER.debug("Retrieving passcode");
 			Double passkey = (Double) request.getParameter("passcode");
 			int passcode = passkey.intValue();
+			int lengthOfPasscode = String.valueOf(passcode).length();
+			if(lengthOfPasscode>4) {
+				LOGGER.debug("Passcode is of more than 4 digits");
+				unlockAppResponse=readResponseMessages.getInvalidUnlockPasscode();
+			}
+			else {
 			LOGGER.debug("Calling unlockApp method in LockUnlock Service passing email id & passcode "+email+" ,"+passcode);
 			unlockAppResponse = lockUnlockAppService.unlockApp(email, passcode);
 			LOGGER.debug("Received response from service after unlock App process ");
+			}
 		}
 		
 		LOGGER.debug("Building response to return the Google Assistant "+unlockAppResponse);
@@ -371,7 +457,7 @@ public class IntentController extends DialogflowApp{
 		
 		if(email==null || email.isEmpty()) {
 			LOGGER.error("Could not get email id of user");
-			unlockAppResponse = readResponseMessages.getErrorWelcomeMessage();
+			retrieveInfoVoiceResponse = readResponseMessages.getErrorWelcomeMessage();
 		}
 		else {
 			LOGGER.debug("Got email id of user"+email);
@@ -478,12 +564,8 @@ public class IntentController extends DialogflowApp{
 					LOGGER.debug("Calling shareInformationOverMail method in shareInformationService passing email id & info key "+email+" ,"+info_key);
 					shareInfoResponse = shareInformationService.shareInformationOverMail(email, info_key, receivermail, username);
 					LOGGER.debug("Received response from service after sharing information over mail process ");
-				}
-				
-				
-				
-			}
-			
+				}	
+			}	
 		}
 		
 		LOGGER.debug("Building response to return the Google Assistant "+shareInfoResponse);

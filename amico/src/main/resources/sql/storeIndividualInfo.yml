@@ -1,0 +1,5 @@
+storeIndividualinfo:
+
+ insertIndividualinformation: insert into individualinformation(p_key, p_content, id) values(:p_key, :p_content,(select id from user where user_email=:user_email));
+ updateIndividualinfo: update individualinformation set p_content=:p_content where p_key=:p_key and id=(select id from user where user_email=:user_email);
+ 
