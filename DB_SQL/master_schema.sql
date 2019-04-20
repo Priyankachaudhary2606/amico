@@ -18,6 +18,25 @@ use amico;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
+-- Table structure for table `individualinformation`
+--
+
+DROP TABLE IF EXISTS `individualinformation`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `individualinformation` (
+  `p_id` int(11) NOT NULL AUTO_INCREMENT,
+  `p_key` varchar(255) DEFAULT NULL,
+  `p_content` varchar(255) DEFAULT NULL,
+  `p_tags` varchar(255) DEFAULT NULL,
+  `id` int(11) DEFAULT NULL,
+  PRIMARY KEY (`p_id`),
+  KEY `id_p_idx` (`id`),
+  CONSTRAINT `id_p` FOREIGN KEY (`id`) REFERENCES `user` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `information`
 --
 
@@ -34,26 +53,7 @@ CREATE TABLE `information` (
   PRIMARY KEY (`info_id`),
   KEY `id_idx` (`id`),
   CONSTRAINT `user_info_fk` FOREIGN KEY (`id`) REFERENCES `user` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `personalinformation`
---
-
-DROP TABLE IF EXISTS `personalinformation`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `personalinformation` (
-  `p_id` int(11) NOT NULL,
-  `p_key` varchar(255) DEFAULT NULL,
-  `p_content` varchar(255) DEFAULT NULL,
-  `p_tags` varchar(255) DEFAULT NULL,
-  `id` int(11) DEFAULT NULL,
-  PRIMARY KEY (`p_id`),
-  KEY `id_p_idx` (`id`),
-  CONSTRAINT `id_p` FOREIGN KEY (`id`) REFERENCES `user` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -70,7 +70,7 @@ CREATE TABLE `user` (
   `lock_flag` tinyint(4) DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `user_email_UNIQUE` (`user_email`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -82,4 +82,4 @@ CREATE TABLE `user` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2019-04-16 23:56:24
+-- Dump completed on 2019-04-20 23:59:55
