@@ -37,7 +37,7 @@ public class SendMailUtility {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SendMailUtility.class);
 
 	
-    public int sendInformationOverMail(String email, String info_key, String file_path) {
+    public int sendInformationOverMail(String email, String info_key, String file_path, String messageContent) {
     	LOGGER.debug("Received request to send the mail of file information");
     	LOGGER.debug("In method - sendInformationOverMail in SendMailUtility");
 	
@@ -47,8 +47,8 @@ public class SendMailUtility {
     // Sender's email ID needs to be mentioned
     String from = readApplicationConstants.getEmailSender();
 
-    final String username = readApplicationConstants.getEmailSender();//change accordingly
-    final String password = readApplicationConstants.getSenderPassword();//change accordingly
+    final String username = readApplicationConstants.getEmailSender();
+    final String password = readApplicationConstants.getSenderPassword();
 
     Properties props = new Properties();
     props.put("mail.smtp.auth", "true");
@@ -81,7 +81,7 @@ public class SendMailUtility {
        BodyPart messageBodyPart = new MimeBodyPart();
 
        
-       messageBodyPart.setText("Here is your "+info_key+" file from Amigo");
+       messageBodyPart.setContent(messageContent,"text/html");
 
        
        Multipart multipart = new MimeMultipart();

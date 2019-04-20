@@ -33,8 +33,21 @@ public class ReadResponseMessages {
 	private String voiceOutInfo3;
 	private String infoLocked1;
 	private String infoLocked2;
-	
+	private String mailSent1;
+	private String mailSent2;	
 			
+	public String getMailSent1() {
+		return mailSent1;
+	}
+	public void setMailSent1(String mailSent1) {
+		this.mailSent1 = mailSent1;
+	}
+	public String getMailSent2() {
+		return mailSent2;
+	}
+	public void setMailSent2(String mailSent2) {
+		this.mailSent2 = mailSent2;
+	}
 	public String getNoInfoFound() {
 		return noInfoFound;
 	}

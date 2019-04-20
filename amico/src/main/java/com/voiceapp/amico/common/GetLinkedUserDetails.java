@@ -77,4 +77,24 @@ public class GetLinkedUserDetails {
 	    LOGGER.debug("Returning name id to controller"+name); 
 		return name;
 	}
+	
+	public String getElementFromParameterString(String parameterString, String element) {
+		parameterString =  parameterString.replaceAll("=", "\":\"");
+		LOGGER.debug("Parameter String to be parsed is "+parameterString);
+		parameterString = parameterString.replaceAll("\\{", "{\"");
+		parameterString = parameterString.replaceAll("\\}", "\"}");
+		parameterString = parameterString.replaceAll(",", "\",\"");
+		LOGGER.debug("Parsed parameter String is "+parameterString +" for element "+element);
+		String retreivedElementValue=null;
+		try {
+			JSONObject bodyObject = new JSONObject(parameterString);
+			LOGGER.debug("Retrieving "+element+" of receiver from all the user details");
+			retreivedElementValue = bodyObject.getString(element);
+		} catch (JSONException e) {
+			return null;
+		}
+	    LOGGER.debug("Returning "+element+" of receiver to controller"+retreivedElementValue); 
+		return retreivedElementValue;
+		
+	}
 }

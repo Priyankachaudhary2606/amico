@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 import org.json.JSONException;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,10 +31,12 @@ import com.google.api.client.json.jackson2.JacksonFactory;
 import com.voiceapp.amico.common.GetLinkedUserDetails;
 import com.voiceapp.amico.common.ReadApplicationConstants;
 import com.voiceapp.amico.common.ReadResponseMessages;
+import com.voiceapp.amico.dto.LinkedUserProfileDto;
 import com.voiceapp.amico.dto.StoreInformationDto;
 import com.voiceapp.amico.service.AddNewUserService;
 import com.voiceapp.amico.service.LockUnlockAppService;
 import com.voiceapp.amico.service.RetrieveInformationService;
+import com.voiceapp.amico.service.ShareInformationService;
 import com.voiceapp.amico.service.StoreInformationService;
 
 /**
@@ -74,6 +77,9 @@ public class IntentController extends DialogflowApp{
 	@Autowired
 	private RetrieveInformationService retrieveInformationService;
 	
+	@Autowired
+	private ShareInformationService shareInformationService;
+	
 	
 	String categoryInfo;
 	String email;
@@ -85,6 +91,7 @@ public class IntentController extends DialogflowApp{
 	String lockAppResponse;
 	String unlockAppResponse;
 	String retrieveInfoVoiceResponse;
+	String shareInfoResponse;
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(IntentController.class);
 	
@@ -411,6 +418,59 @@ public class IntentController extends DialogflowApp{
 		
 		LOGGER.debug("Building response to return the Google Assistant "+retrieveInfoVoiceResponse);
 		responseBuilder.add(retrieveInfoVoiceResponse);
+		return responseBuilder.build();
+	}
+	
+/**
+ * 
+ * 
+ * @param request
+ * @return
+ * @throws JSONException
+ * @throws IOException
+ */
+	@ForIntent("ShareInfo")
+	public ActionResponse shareInformation(ActionRequest request) throws JSONException, IOException {
+		ResponseBuilder responseBuilder = getResponseBuilder(request);
+		LOGGER.debug("Received request in share information over mail intent - Intent Controller ");
+		LOGGER.debug("Retrieving access token from request");
+		accessToken=request.getUser().getAccessToken();		
+		LOGGER.debug("Calling method to get email id of user using accessToken");
+		email = linkedUserDetails.getUserEmail(accessToken);
+		
+		if(email==null || email.isEmpty()) {
+			LOGGER.error("Could not get email id of user");
+			unlockAppResponse = readResponseMessages.getErrorWelcomeMessage();
+		}
+		else {
+			String username = linkedUserDetails.getUsername(accessToken);
+			LOGGER.debug("Got email id & username of user"+email+username);
+			LOGGER.debug("Retrieving infomation key");
+			String info_key = (String) request.getParameter("info_key");
+			LOGGER.debug("Retrieving platform");
+			String platform = (String) request.getParameter("platform");
+			if(platform.equals("text message")) {
+				LOGGER.debug("Calling retrieveInfoOverMail method in RetrieveInformationService passing email id & info key "+email+" ,"+info_key);
+				shareInfoResponse = "Work is in progress";
+				LOGGER.debug("Received response from service after retrieving information over mail process ");
+			}
+			else if(platform.equals("whatsapp")) {
+				LOGGER.debug("Calling retrieveInfoOverMail method in RetrieveInformationService passing email id & info key "+email+" ,"+info_key);
+				shareInfoResponse = "Work is in progress";
+				LOGGER.debug("Received response from service after retrieving information over mail process ");
+			}
+			else {
+				
+				String receivermail = linkedUserDetails.getElementFromParameterString(request.getParameter("receiver_contact").toString(), "email_id");
+				LOGGER.debug("Calling retrieveInfoOverMail method in RetrieveInformationService passing email id & info key "+email+" ,"+info_key);
+				shareInfoResponse = shareInformationService.shareInformationOverMail(email, info_key, receivermail, username);
+				LOGGER.debug("Received response from service after retrieving information over mail process ");
+			}
+			
+		}
+		
+		LOGGER.debug("Building response to return the Google Assistant "+shareInfoResponse);
+		responseBuilder.add(shareInfoResponse);
 		return responseBuilder.build();
 	}
 }

@@ -83,9 +83,10 @@ public class RetrieveInformationService {
 				}
 			}
 			else {
+				String mailMessage = emailBodyUtility.emailFileMessageRetrieveInfo(email, info_key);
 				LOGGER.debug("Executing else as Information is of type File ");
 				LOGGER.debug("Mail the information as it is of type file");
-				int mailStatus = sendMailUtility.sendInformationOverMail(email,info_key,informationDetailsDto.getInfo_content());
+				int mailStatus = sendMailUtility.sendInformationOverMail(email,info_key,informationDetailsDto.getInfo_content(), mailMessage);
 				LOGGER.debug("Mail Status is " +mailStatus);
 				if(mailStatus==1) {
 					LOGGER.debug("Mail was sent successfully");
@@ -123,13 +124,15 @@ public class RetrieveInformationService {
 			retrieveVoiceInfoResponse=readResponseMessages.getNoInfoFound();
 		}
 		else {
-			String messageBody= emailBodyUtility.emailTextMessageRetrieveInfo(info_key.toUpperCase(), informationDetailsDto.getInfo_content());
+			
 			LOGGER.debug("Receievd information for user against info_key"+info_key); 
 			LOGGER.debug("Checking type of information"+informationDetailsDto.getType_of_info());
 			if(informationDetailsDto.getType_of_info().equals(readApplicationConstants.getTextTypeOfInfo())) {
+				String messageBody= emailBodyUtility.emailTextMessageRetrieveInfo(info_key.toUpperCase(), informationDetailsDto.getInfo_content());
 				LOGGER.debug("Executing if as Information is of type Text ");
 				LOGGER.debug("Checking the category of information"+informationDetailsDto.getCategory_of_info());
 				if(informationDetailsDto.getCategory_of_info().equals(readApplicationConstants.getGeneralCategoryOfInfo())) {
+					
 					LOGGER.debug("Executing if as Information belongs to GENERAL category");
 					LOGGER.debug("Sending mail to retrieve information over mail");
 					mailStatus = sendMailUtility.sendTextInformationOverMail(email,info_key,messageBody);
@@ -167,9 +170,10 @@ public class RetrieveInformationService {
 				}
 			}
 			else {
+				String messageBody= emailBodyUtility.emailFileMessageRetrieveInfo(email,informationDetailsDto.getInfo_key().toUpperCase());
 				LOGGER.debug("Executing else as Information is of type File ");
 				LOGGER.debug("Mail the information as it is of type file");
-				mailStatus = sendMailUtility.sendInformationOverMail(email,info_key,informationDetailsDto.getInfo_content());
+				mailStatus = sendMailUtility.sendInformationOverMail(email, informationDetailsDto.getInfo_key(), informationDetailsDto.getInfo_content(), messageBody);
 				LOGGER.debug("Mail Status is " +mailStatus);
 				if(mailStatus==1) {
 					LOGGER.debug("Mail was sent successfully");
