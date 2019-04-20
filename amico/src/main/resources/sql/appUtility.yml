@@ -2,3 +2,5 @@ utility:
  checkpasscodeexists: SELECT EXISTS(SELECT 1 FROM user where user_email=:user_email and passcode!=-1);
  checkrecordexists: SELECT EXISTS(SELECT 1 FROM information WHERE info_key=:info_key and id = (select id from user where user_email=:user_email));
  infodetails: select * from information inner join user on information.id=user.id where info_key=:info_key and user_email=:user_email;
+ individualInformation: select p_content from individualinformation where p_key=:p_key and id=(select id from user where user_email=:user_email);
+ checkIndividualInfoExists: SELECT EXISTS(SELECT 1 FROM individualinformation where id=(select id from user where user_email=:user_email) and p_key=:p_key);

@@ -34,8 +34,15 @@ public class ReadResponseMessages {
 	private String infoLocked1;
 	private String infoLocked2;
 	private String mailSent1;
-	private String mailSent2;	
+	private String mailSent2;
+	private String invalidEmail;
 			
+	public String getInvalidEmail() {
+		return invalidEmail;
+	}
+	public void setInvalidEmail(String invalidEmail) {
+		this.invalidEmail = invalidEmail;
+	}
 	public String getMailSent1() {
 		return mailSent1;
 	}

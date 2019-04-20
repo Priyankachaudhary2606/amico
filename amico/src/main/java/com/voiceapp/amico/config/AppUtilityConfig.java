@@ -18,6 +18,30 @@ public class AppUtilityConfig {
 	 
 	 @Value("${infodetails}")
 	 private String infodetails;
+	 
+	 @Value("${individualInformation}")
+	 private String individualInformation;
+
+	 @Value("${checkIndividualInfoExists}")
+	 private String checkIndividualInfoExists;
+	 
+	
+	 
+	public String getCheckIndividualInfoExists() {
+		return checkIndividualInfoExists;
+	}
+
+	public void setCheckIndividualInfoExists(String checkIndividualInfoExists) {
+		this.checkIndividualInfoExists = checkIndividualInfoExists;
+	}
+
+	public String getIndividualInformation() {
+		return individualInformation;
+	}
+
+	public void setIndividualInformation(String individualInformation) {
+		this.individualInformation = individualInformation;
+	}
 
 	public String getInfodetails() {
 		return infodetails;

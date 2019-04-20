@@ -450,7 +450,7 @@ public class IntentController extends DialogflowApp{
 			LOGGER.debug("Retrieving platform");
 			String platform = (String) request.getParameter("platform");
 			if(platform.equals("text message")) {
-				LOGGER.debug("Calling retrieveInfoOverMail method in RetrieveInformationService passing email id & info key "+email+" ,"+info_key);
+				LOGGER.debug("Calling shareInfo method in RetrieveInformationService passing email id & info key "+email+" ,"+info_key);
 				shareInfoResponse = "Work is in progress";
 				LOGGER.debug("Received response from service after retrieving information over mail process ");
 			}
@@ -460,11 +460,28 @@ public class IntentController extends DialogflowApp{
 				LOGGER.debug("Received response from service after retrieving information over mail process ");
 			}
 			else {
-				
+				LOGGER.debug("Calling getElementFromParameterString to retrieve email_id from parameters");
 				String receivermail = linkedUserDetails.getElementFromParameterString(request.getParameter("receiver_contact").toString(), "email_id");
-				LOGGER.debug("Calling retrieveInfoOverMail method in RetrieveInformationService passing email id & info key "+email+" ,"+info_key);
-				shareInfoResponse = shareInformationService.shareInformationOverMail(email, info_key, receivermail, username);
-				LOGGER.debug("Received response from service after retrieving information over mail process ");
+				if(receivermail==null || receivermail.isEmpty()) {
+					receivermail=linkedUserDetails.getElementFromParameterString(request.getParameter("receiver_contact").toString(), "personal_contact");
+					if(receivermail==null || receivermail.isEmpty()) {
+						LOGGER.debug("Could not retrieve Email Id of receiver");
+						shareInfoResponse =readResponseMessages.getInvalidEmail();
+					}
+					else {
+						LOGGER.debug("User wants to share information to an individual's contact");
+						LOGGER.debug("Calling shareInformationToIndividualContact method in shareInformationService");
+						shareInfoResponse=shareInformationService.shareInformationToIndividualContact(email, info_key, receivermail, username);
+					}
+				}
+				else {
+					LOGGER.debug("Calling shareInformationOverMail method in shareInformationService passing email id & info key "+email+" ,"+info_key);
+					shareInfoResponse = shareInformationService.shareInformationOverMail(email, info_key, receivermail, username);
+					LOGGER.debug("Received response from service after sharing information over mail process ");
+				}
+				
+				
+				
 			}
 			
 		}

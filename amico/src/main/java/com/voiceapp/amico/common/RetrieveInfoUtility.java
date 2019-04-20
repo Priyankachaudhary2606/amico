@@ -15,13 +15,24 @@ import org.springframework.stereotype.Repository;
 import com.voiceapp.amico.config.AppUtilityConfig;
 import com.voiceapp.amico.dto.InformationDetailsDto;
 
-
+/**
+ * 
+ * This is the utility class to get the information from database and can be used for various operations
+ * 1. Retrieve information against the info_key asked by used
+ * 2. Retrieve information against the individual's conatct details
+ * 
+ * @author priyankachoudhary
+ *
+ */
 
 @Repository
 public class RetrieveInfoUtility extends AbstractTransactionalDao {
 	
 	@Autowired
 	private AppUtilityConfig appUtilityConfig;
+	
+	@Autowired
+	private ReadResponseMessages readResponseMessages;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(RetrieveInfoUtility.class);
 	private static final InfoDetailsRowMapper infoDetails_RowMapper = new InfoDetailsRowMapper();
@@ -69,6 +80,41 @@ public class RetrieveInfoUtility extends AbstractTransactionalDao {
 					category_of_info, user_email, passcode, lock_flag);
 					
 			
+		}
+	}
+
+/**
+ * This is the method used to get the individual's personal contact details from the DATABASE
+ * which can then be used to share some information
+ * @param email
+ * @param info_key
+ * @return
+ */
+	
+	public String getInformationForIndividualInfo(String email, String p_key) {
+		LOGGER.debug("Received request in getInformationForIndividualInfo in class RetrieveInfoUtility");
+		LOGGER.debug("To get information stored by user against personal contact"+ p_key);
+		LOGGER.debug("Adding parameters for SQL query");
+		Map<String, Object> individualInfoParameters = new HashMap<>();
+		individualInfoParameters.put("user_email", email);
+		individualInfoParameters.put("p_key", p_key);
+		try {
+			LOGGER.debug("Checking if Personal contact detail exist");
+			int checkContactExistence=getJdbcTemplate().queryForObject(appUtilityConfig.getCheckIndividualInfoExists(),individualInfoParameters, Integer.class);
+			if(checkContactExistence==1) {
+				LOGGER.debug("Personal contact detail exist");
+				LOGGER.debug("Executing query to get information against a personal conatct for user");
+				return getJdbcTemplate().queryForObject(appUtilityConfig.getIndividualInformation(),individualInfoParameters, String.class);
+			}
+			else {
+				LOGGER.debug("Personal contact detail does not exist");
+				return readResponseMessages.getNoInfoFound();
+			}
+			
+		} catch (DataAccessException e) {
+			LOGGER.error("Exception occurred while retrieving information against personal contact asked by user");
+			LOGGER.error("Exception is"+e+". Returning null");
+			return null;
 		}
 	}
 	
