@@ -42,7 +42,36 @@ public class ReadResponseMessages {
 	private String mailSent1;
 	private String mailSent2;
 	private String invalidEmail;
-			
+	private String messageSent;
+	private String messageFailed;
+	private String messageHasFileFailed;
+	private String contactNumberInvalid;
+	
+				
+	public String getContactNumberInvalid() {
+		return contactNumberInvalid;
+	}
+	public void setContactNumberInvalid(String contactNumberInvalid) {
+		this.contactNumberInvalid = contactNumberInvalid;
+	}
+	public String getMessageSent() {
+		return messageSent;
+	}
+	public void setMessageSent(String messageSent) {
+		this.messageSent = messageSent;
+	}
+	public String getMessageFailed() {
+		return messageFailed;
+	}
+	public void setMessageFailed(String messageFailed) {
+		this.messageFailed = messageFailed;
+	}
+	public String getMessageHasFileFailed() {
+		return messageHasFileFailed;
+	}
+	public void setMessageHasFileFailed(String messageHasFileFailed) {
+		this.messageHasFileFailed = messageHasFileFailed;
+	}
 	public String getInvalidEmail() {
 		return invalidEmail;
 	}

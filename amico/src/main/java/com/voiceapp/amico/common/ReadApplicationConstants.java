@@ -18,7 +18,36 @@ public class ReadApplicationConstants {
     private String host;
     private String port;
     private String senderPassword;
+    private String smskey;
+    private String senderId;
+    private String smsUrl;
     
+    
+    
+	public String getSmskey() {
+		return smskey;
+	}
+
+	public void setSmskey(String smskey) {
+		this.smskey = smskey;
+	}
+
+	public String getSenderId() {
+		return senderId;
+	}
+
+	public void setSenderId(String senderId) {
+		this.senderId = senderId;
+	}
+
+	public String getSmsUrl() {
+		return smsUrl;
+	}
+
+	public void setSmsUrl(String smsUrl) {
+		this.smsUrl = smsUrl;
+	}
+
 	public String getSenderPassword() {
 		return senderPassword;
 	}

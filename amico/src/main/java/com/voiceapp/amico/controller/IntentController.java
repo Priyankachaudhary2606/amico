@@ -535,16 +535,39 @@ public class IntentController extends DialogflowApp{
 			String info_key = (String) request.getParameter("info_key");
 			LOGGER.debug("Retrieving platform");
 			String platform = (String) request.getParameter("platform");
+			
 			if(platform.equals("text message")) {
-				LOGGER.debug("Calling shareInfo method in RetrieveInformationService passing email id & info key "+email+" ,"+info_key);
-				shareInfoResponse = "Work is in progress";
-				LOGGER.debug("Received response from service after retrieving information over mail process ");
+				LOGGER.debug("Platform is "+platform);
+				String receivermail = linkedUserDetails.getElementFromParameterString(request.getParameter("receiver_contact").toString(), "contact_number");
+				if(receivermail==null || receivermail.isEmpty()) {
+					receivermail=linkedUserDetails.getElementFromParameterString(request.getParameter("receiver_contact").toString(), "personal_contact");
+					if(receivermail==null || receivermail.isEmpty() ) {
+						LOGGER.debug("Could not retrieve contact of receiver");
+						shareInfoResponse = readResponseMessages.getContactNumberInvalid();
+					}
+					else {
+						LOGGER.debug("User wants to share information to an individual's contact");
+						LOGGER.debug("Calling shareInformationToIndividualContact method in shareInformationService");
+						shareInfoResponse = shareInformationService.shareInformationOverTextToIndividualContact(email, info_key, receivermail, username);
+					}
+				}
+				else {
+					LOGGER.debug("Calling shareInformationOverMail method in shareInformationService passing email id & info key "+email+" ,"+info_key+receivermail);
+					shareInfoResponse = shareInformationService.shareInformationOverTextMessage(email, info_key, receivermail, username);
+					LOGGER.debug("Received response from service after sharing information over text message ");
+				}				
 			}
+			
+			
 			else if(platform.equals("whatsapp")) {
 				LOGGER.debug("Calling retrieveInfoOverMail method in RetrieveInformationService passing email id & info key "+email+" ,"+info_key);
 				shareInfoResponse = "Work is in progress";
-				LOGGER.debug("Received response from service after retrieving information over mail process ");
+				LOGGER.debug("Received response from service after retrieving information over mail process ");				
+			
+				
 			}
+			
+			
 			else {
 				LOGGER.debug("Calling getElementFromParameterString to retrieve email_id from parameters");
 				String receivermail = linkedUserDetails.getElementFromParameterString(request.getParameter("receiver_contact").toString(), "email_id");
@@ -557,7 +580,7 @@ public class IntentController extends DialogflowApp{
 					else {
 						LOGGER.debug("User wants to share information to an individual's contact");
 						LOGGER.debug("Calling shareInformationToIndividualContact method in shareInformationService");
-						shareInfoResponse=shareInformationService.shareInformationToIndividualContact(email, info_key, receivermail, username);
+						shareInfoResponse=shareInformationService.shareInformationOverMailToIndividualContact(email, info_key, receivermail, username);
 					}
 				}
 				else {
