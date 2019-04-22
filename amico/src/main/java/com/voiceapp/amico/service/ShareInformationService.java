@@ -13,6 +13,7 @@ import com.voiceapp.amico.common.ReadResponseMessages;
 import com.voiceapp.amico.common.RetrieveInfoUtility;
 import com.voiceapp.amico.common.SendMailUtility;
 import com.voiceapp.amico.common.SendTextMessageUtility;
+import com.voiceapp.amico.common.SendWhatsappMessage;
 import com.voiceapp.amico.dto.InformationDetailsDto;
 
 /**
@@ -43,6 +44,9 @@ public class ShareInformationService {
 	
 	@Autowired
 	private SendTextMessageUtility sendTextMessageUtility;
+	
+	@Autowired
+	private SendWhatsappMessage sendWhatsappMessage;
 	
 	String shareInfoOverMailResponse;
 	
@@ -304,6 +308,135 @@ public class ShareInformationService {
 	}
 		
 		
+/**
+ * This method will be invoked to send  whatsapp message	
+ * @param email
+ * @param info_key
+ * @param receiverContactNumber
+ * @param username
+ * @return
+ */
+	public String shareInfoOverWhatsappMessage(String email, String info_key, String receiverContactNumber, String username) {
+		String shareInfoWhatsappMessageResponse=null;
+		LOGGER.debug("Received request in shareInfoOverWhatsappMessage to send WHATSAPP message having information");
+		LOGGER.debug("Calling method to get informtion asked by user"+info_key);
+		InformationDetailsDto informationDetailsDto = retrieveInfoUtility.getInformationForInfoKey(email, info_key);
+		if(informationDetailsDto==null || informationDetailsDto.getUser_email()==null || informationDetailsDto.getUser_email().isEmpty()) {
+			LOGGER.debug("Response of retrieved information is null");
+			shareInfoWhatsappMessageResponse=readResponseMessages.getNoInfoFound();
+		}
+		
+		else {
+			LOGGER.debug("Executing else as information found in the system");
+			LOGGER.debug("Checking if information is of type file"+informationDetailsDto.getType_of_info());
+			if(informationDetailsDto.getType_of_info().equals(readApplicationConstants.getFileTypeOfInfo())) {
+				LOGGER.debug("Executing if as information is of file type");
+				shareInfoWhatsappMessageResponse="For "+info_key+" "+readResponseMessages.getMessageHasFileFailed();
+				
+				/****************************************FILE****************************************/
+
+				LOGGER.debug("Executing else as information of type Text");
+				LOGGER.debug("Checking if information is personal or general"+informationDetailsDto.getCategory_of_info());
+				if(informationDetailsDto.getCategory_of_info().equals(readApplicationConstants.getPersonalCategoryOfInfo())) {
+					LOGGER.debug("Executing if as text information is personal");
+					LOGGER.debug("Checking if informtion is locked or not"+informationDetailsDto.getLock_flag());
+					if(informationDetailsDto.getLock_flag()==1) {
+						LOGGER.debug("Executing if as information is locked");
+						shareInfoWhatsappMessageResponse=readResponseMessages.getInfoLocked1()+" "+informationDetailsDto.getInfo_key()+" "+readResponseMessages.getInfoLocked2();;
+					}
+					else {
+						int statusSenttext = sendWhatsappMessage.sendDocOverWhatsapp(receiverContactNumber);
+						if(statusSenttext==1) {
+							LOGGER.debug("Message has been sent successfully");
+							shareInfoWhatsappMessageResponse=readResponseMessages.getMessageSent();
+						}else {
+							LOGGER.debug("Message was not sent successfully");
+							shareInfoWhatsappMessageResponse=readResponseMessages.getMessageFailed();
+						}
+						
+					}
+				}
+				else {
+					LOGGER.debug("Executing else as information is general");
+					int statusSenttext = sendWhatsappMessage.sendDocOverWhatsapp(receiverContactNumber);
+					if(statusSenttext==1) {
+						LOGGER.debug("Message has been sent successfully");
+						shareInfoWhatsappMessageResponse=readResponseMessages.getMessageSent();
+					}else {
+						LOGGER.debug("Message was not sent successfully");
+						shareInfoWhatsappMessageResponse=readResponseMessages.getMessageFailed();
+					}
+				}
+			
+				/**********************************END FILE TYPE ************************************/
+
+			}
+			else {
+				String messageBody="Hi, "+username+" has shared "+info_key+" -- "+informationDetailsDto.getInfo_content()+". *Do not share.*";
+				LOGGER.debug("Executing else as information of type Text");
+				LOGGER.debug("Checking if information is personal or general"+informationDetailsDto.getCategory_of_info());
+				if(informationDetailsDto.getCategory_of_info().equals(readApplicationConstants.getPersonalCategoryOfInfo())) {
+					LOGGER.debug("Executing if as text information is personal");
+					LOGGER.debug("Checking if informtion is locked or not"+informationDetailsDto.getLock_flag());
+					if(informationDetailsDto.getLock_flag()==1) {
+						LOGGER.debug("Executing if as information is locked");
+						shareInfoWhatsappMessageResponse=readResponseMessages.getInfoLocked1()+" "+informationDetailsDto.getInfo_key()+" "+readResponseMessages.getInfoLocked2();;
+					}
+					else {
+						int statusSenttext = sendWhatsappMessage.sendTextWhatsappMessage(email, receiverContactNumber, info_key, messageBody);
+						if(statusSenttext==1) {
+							LOGGER.debug("Message has been sent successfully");
+							shareInfoWhatsappMessageResponse=readResponseMessages.getMessageSent();
+						}else {
+							LOGGER.debug("Message was not sent successfully");
+							shareInfoWhatsappMessageResponse=readResponseMessages.getMessageFailed();
+						}
+						
+					}
+				}
+				else {
+					LOGGER.debug("Executing else as information is general");
+					int statusSenttext = sendWhatsappMessage.sendTextWhatsappMessage(email, receiverContactNumber, info_key, messageBody);
+					if(statusSenttext==1) {
+						LOGGER.debug("Message has been sent successfully");
+						shareInfoWhatsappMessageResponse=readResponseMessages.getMessageSent();
+					}else {
+						LOGGER.debug("Message was not sent successfully");
+						shareInfoWhatsappMessageResponse=readResponseMessages.getMessageFailed();
+					}
+				}
+			}
+		}
+		
+		LOGGER.debug("Returning message from Service after sending the WHATSAPP message"+ shareInfoWhatsappMessageResponse);
+		return shareInfoWhatsappMessageResponse;
+	}
+	
+	
+	
+	
+	public String shareInfoOverWhatsappToIndividualContact(String email, String info_key, String p_key, String username) {
+		LOGGER.debug("Request received in service to send whatsapp message over individual contact");
+		String shareInfoWhatsappToIndividualResponse=readResponseMessages.getMessageFailed();
+		String getReceiverContact=retrieveInfoUtility.getInformationForIndividualInfo(email, p_key);
+		if(getReceiverContact==null || getReceiverContact.isEmpty()) {
+			LOGGER.debug("While getting personal contact information, Exception occurred");
+			LOGGER.debug("Returning message unsuccessful message");
+			shareInfoWhatsappToIndividualResponse=readResponseMessages.getMessageFailed();
+		}
+		else if(getReceiverContact.equals(readResponseMessages.getNoInfoFound())) {
+			LOGGER.debug("While getting personal contact information");
+			LOGGER.debug("No information found for personal_contact"+p_key);
+			shareInfoWhatsappToIndividualResponse=getReceiverContact;
+		}
+		else {
+			LOGGER.debug("Individual information found for user, that is"+p_key+getReceiverContact);
+			shareInfoWhatsappToIndividualResponse=this.shareInfoOverWhatsappMessage(email, info_key, getReceiverContact, username);
+			LOGGER.debug("Received response from share over text message method in Service"+shareInfoWhatsappToIndividualResponse);
+		}
+		LOGGER.debug("Returning response from shareInformationOverTextToIndividualContact for Google Assistant to Intent Controller"+shareInfoWhatsappToIndividualResponse);
+		return shareInfoWhatsappToIndividualResponse;
+	}
 		
 		
 

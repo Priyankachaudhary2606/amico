@@ -48,8 +48,16 @@ public class ReadResponseMessages {
 	private String contactNumberInvalid;
 	private String applicationFailMessage;
 	private String newPasscodeMailed;
+	private String noPasscodeExistsToReset;
+	
 	
 				
+	public String getNoPasscodeExistsToReset() {
+		return noPasscodeExistsToReset;
+	}
+	public void setNoPasscodeExistsToReset(String noPasscodeExistsToReset) {
+		this.noPasscodeExistsToReset = noPasscodeExistsToReset;
+	}
 	public String getNewPasscodeMailed() {
 		return newPasscodeMailed;
 	}

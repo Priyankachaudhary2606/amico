@@ -217,6 +217,8 @@ public class IntentController extends DialogflowApp{
 					}
 				}
 				else {
+					individual_email_id=individual_email_id.replaceAll("\\s+","");
+					LOGGER.debug("Removed space from shared email id of receiver"+individual_email_id);
 					StoreIndividualInfoDto storeIndividualInfoDto = new StoreIndividualInfoDto(email, (String) request.getParameter("individual_contact"), individual_email_id);
 					storeIndividualInfoResponse= storeIndividualInfoService.storeIndividualInformation(storeIndividualInfoDto);
 				}
@@ -513,7 +515,7 @@ public class IntentController extends DialogflowApp{
 	}
 	
 /**
- * 
+ * This method will be invoked when user wants to share their information with anybody
  * 
  * @param request
  * @return
@@ -565,9 +567,27 @@ public class IntentController extends DialogflowApp{
 			
 			
 			else if(platform.equals("whatsapp")) {
-				LOGGER.debug("Calling retrieveInfoOverMail method in RetrieveInformationService passing email id & info key "+email+" ,"+info_key);
-				shareInfoResponse = "Work is in progress";
-				LOGGER.debug("Received response from service after retrieving information over mail process ");				
+
+				LOGGER.debug("Platform is "+platform);
+				String receiverContact = linkedUserDetails.getElementFromParameterString(request.getParameter("receiver_contact").toString(), "contact_number");
+				if(receiverContact==null || receiverContact.isEmpty()) {
+					receiverContact=linkedUserDetails.getElementFromParameterString(request.getParameter("receiver_contact").toString(), "personal_contact");
+					if(receiverContact==null || receiverContact.isEmpty() ) {
+						LOGGER.debug("Could not retrieve contact of receiver");
+						shareInfoResponse = readResponseMessages.getContactNumberInvalid();
+					}
+					else {
+						LOGGER.debug("User wants to share information to an individual's contact");
+						LOGGER.debug("Calling shareInformationToIndividualContact method in shareInformationService");
+						shareInfoResponse = shareInformationService.shareInfoOverWhatsappToIndividualContact(email, info_key, receiverContact, username);
+					}
+				}
+				else {
+					LOGGER.debug("Calling shareInformationOverMail method in shareInformationService passing email id & info key "+email+" ,"+info_key+receiverContact);
+					shareInfoResponse = shareInformationService.shareInfoOverWhatsappMessage(email, info_key, receiverContact, username);
+					LOGGER.debug("Received response from service after sharing information over text message ");
+				}				
+						
 			
 				
 			}
@@ -608,7 +628,7 @@ public class IntentController extends DialogflowApp{
  * 
  */
 	
-	@ForIntent("ForgotPasscode")
+	@ForIntent("ForgotPasscode - yes")
 	public ActionResponse forgotPasscode(ActionRequest request) { 
 		ResponseBuilder responseBuilder = getResponseBuilder(request);
 		LOGGER.debug("Received request in forgot passcode intent - Intent Controller ");

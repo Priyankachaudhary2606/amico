@@ -67,7 +67,7 @@ public class ForgotPasscodeService {
 		}
 		else {
 			LOGGER.debug("Passcode doesn't exist");
-			forgotPasscodeResponse=readResponseMessages.getPasscodeIsEmpty();
+			forgotPasscodeResponse=readResponseMessages.getNoPasscodeExistsToReset();
 		}
 		
 		LOGGER.debug("Returning response from service for goolgle assistant"+forgotPasscodeResponse);
