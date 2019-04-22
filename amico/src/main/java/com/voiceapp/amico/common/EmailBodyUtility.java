@@ -94,4 +94,15 @@ public class EmailBodyUtility {
 		return emailMessage;
 	}
 
+	
+	public String forgotPasscode(int passcode) {
+		LOGGER.debug("Received request to get the body of email while sending the reset password");
+		String emailMessage=null;
+		emailMessage="<font color=darkblue>Hi,<br><br>";
+		emailMessage += "This is your new passcode <b>"+passcode+"</b> to unlock your personal information with JERRY";
+		emailMessage += "<br>Keep it safe & confidential.<br><br>From,<br>";
+		emailMessage += "<font color=#c14b7a><b>JERRY</b></font><br>";
+		LOGGER.debug("Retrurning email message body for reseting password mail"+emailMessage);
+		return emailMessage;
+	}
 }

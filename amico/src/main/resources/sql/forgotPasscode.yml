@@ -1,0 +1,3 @@
+forgotpasscode:
+
+ replacePasscode:update user set passcode=:passcode where user_email=:user_email;

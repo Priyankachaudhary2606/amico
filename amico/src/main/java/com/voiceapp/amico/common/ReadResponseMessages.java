@@ -46,8 +46,22 @@ public class ReadResponseMessages {
 	private String messageFailed;
 	private String messageHasFileFailed;
 	private String contactNumberInvalid;
+	private String applicationFailMessage;
+	private String newPasscodeMailed;
 	
 				
+	public String getNewPasscodeMailed() {
+		return newPasscodeMailed;
+	}
+	public void setNewPasscodeMailed(String newPasscodeMailed) {
+		this.newPasscodeMailed = newPasscodeMailed;
+	}
+	public String getApplicationFailMessage() {
+		return applicationFailMessage;
+	}
+	public void setApplicationFailMessage(String applicationFailMessage) {
+		this.applicationFailMessage = applicationFailMessage;
+	}
 	public String getContactNumberInvalid() {
 		return contactNumberInvalid;
 	}

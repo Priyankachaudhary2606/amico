@@ -35,6 +35,7 @@ import com.voiceapp.amico.dto.LinkedUserProfileDto;
 import com.voiceapp.amico.dto.StoreIndividualInfoDto;
 import com.voiceapp.amico.dto.StoreInformationDto;
 import com.voiceapp.amico.service.AddNewUserService;
+import com.voiceapp.amico.service.ForgotPasscodeService;
 import com.voiceapp.amico.service.LockUnlockAppService;
 import com.voiceapp.amico.service.RetrieveInformationService;
 import com.voiceapp.amico.service.ShareInformationService;
@@ -85,6 +86,9 @@ public class IntentController extends DialogflowApp{
 	@Autowired
 	private StoreIndividualInfoService storeIndividualInfoService;
 	
+	@Autowired
+	private ForgotPasscodeService forgotPasscodeService;
+	
 
 	
 	
@@ -100,6 +104,7 @@ public class IntentController extends DialogflowApp{
 	String unlockAppResponse;
 	String retrieveInfoVoiceResponse;
 	String shareInfoResponse;
+	String forgotPasscode;
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(IntentController.class);
 	
@@ -593,6 +598,37 @@ public class IntentController extends DialogflowApp{
 		
 		LOGGER.debug("Building response to return the Google Assistant "+shareInfoResponse);
 		responseBuilder.add(shareInfoResponse);
+		return responseBuilder.build();
+	}
+	
+/**
+ * 	This is the method which will be invoked when user forgot the passcode
+ * @param request
+ * @return
+ * 
+ */
+	
+	@ForIntent("ForgotPasscode")
+	public ActionResponse forgotPasscode(ActionRequest request) { 
+		ResponseBuilder responseBuilder = getResponseBuilder(request);
+		LOGGER.debug("Received request in forgot passcode intent - Intent Controller ");
+		LOGGER.debug("Retrieving access token from request");
+		try {
+		accessToken=request.getUser().getAccessToken();		
+		LOGGER.debug("Calling method to get email id of user using accessToken");
+			email = linkedUserDetails.getUserEmail(accessToken);
+			if(email==null || email.isEmpty()) {
+				LOGGER.error("Could not get email id of user");
+				forgotPasscode = readResponseMessages.getErrorWelcomeMessage();
+			}
+			else {
+				forgotPasscode= forgotPasscodeService.forgotPasscode(email);
+			}
+			
+		} catch (Exception e) {
+			forgotPasscode=readResponseMessages.getApplicationFailMessage();
+		} 
+		responseBuilder.add(forgotPasscode);
 		return responseBuilder.build();
 	}
 }
